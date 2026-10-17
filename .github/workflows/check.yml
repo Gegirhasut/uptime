@@ -1,0 +1,38 @@
+name: check
+# Every 5 minutes (GitHub may start it a few minutes late): is the game server up? check.sh says it to the phone.
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: check
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Look at the server
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: bash check.sh
+      # GitHub stops a public repo's schedule after 60 days without commits: a line to alive.txt every 20 days.
+      - name: Keep the schedule alive
+        run: |
+          last=$(git log -1 --format=%ct)
+          if [ $(( $(date -u +%s) - last )) -gt $(( 20 * 86400 )) ]; then date -u +%F > alive.txt; fi
+      - name: Save the state
+        run: |
+          git config user.name "uptime-check"
+          git config user.email "uptime-check@users.noreply.github.com"
+          git add -A state.txt OUTAGES.md alive.txt 2>/dev/null || true
+          if ! git diff --cached --quiet; then
+            git commit -m "state: $(cut -d' ' -f1 state.txt 2>/dev/null || echo alive)"
+            git push
+          fi
