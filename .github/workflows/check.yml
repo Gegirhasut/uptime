@@ -1,5 +1,5 @@
 name: check
-# Every 5 minutes (GitHub may start it a few minutes late): is the game server up? check.sh says it to the phone.
+# Every 5 minutes (GitHub may start it a few minutes late): are the game server and the sites up? check.sh says it to the phone.
 on:
   schedule:
     - cron: "*/5 * * * *"
@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Look at the server
+      - name: Look at the servers
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
         run: bash check.sh
@@ -31,8 +31,8 @@ jobs:
         run: |
           git config user.name "uptime-check"
           git config user.email "uptime-check@users.noreply.github.com"
-          git add -A state.txt OUTAGES.md alive.txt 2>/dev/null || true
+          git add -A state*.txt OUTAGES*.md alive.txt 2>/dev/null || true
           if ! git diff --cached --quiet; then
-            git commit -m "state: $(cut -d' ' -f1 state.txt 2>/dev/null || echo alive)"
+            git commit -m "state: $(for f in state*.txt; do printf '%s=%s ' "${f%.txt}" "$(cut -d' ' -f1 "$f")"; done)"
             git push
           fi
