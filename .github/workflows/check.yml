@@ -31,7 +31,8 @@ jobs:
         run: |
           git config user.name "uptime-check"
           git config user.email "uptime-check@users.noreply.github.com"
-          git add -A state*.txt OUTAGES*.md alive.txt 2>/dev/null || true
+          # only the files that exist: one missing name makes git add drop the whole list
+          for f in state*.txt OUTAGES*.md alive.txt; do [ -f "$f" ] && git add -- "$f"; done
           if ! git diff --cached --quiet; then
             git commit -m "state: $(for f in state*.txt; do printf '%s=%s ' "${f%.txt}" "$(cut -d' ' -f1 "$f")"; done)"
             git push
