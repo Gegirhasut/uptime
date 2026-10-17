@@ -2,7 +2,10 @@
 # Sites watched from outside: GitHub runs this every 5 minutes (.github/workflows/check.yml).
 #   game   — Underground Fight: Wild 90s, undergroundfightgame.com: the API itself and a read from the database;
 #   theway — theway4you.co.uk: the home page and the consultation page (its slots come from the database);
-#   tcampo — tcampo.com: the home page with the contact form.
+#   tcampo — tcampo.com: the home page with the contact form;
+#   idlecoin — idlecoin.pro: the home page (the «bots» box 172.233.77.38 — only looked at from here, nothing goes on it);
+#   qaprovider — qaprovider.com: the home page (Hostinger srv460126);
+#   sabostack — sabostack.com: the home page (Hostinger srv1637397).
 # theway and tcampo live on one VPS (Hostinger srv452300), the game on another.
 # Down — three tries in a row failed — a push to the phone through ntfy (secret NTFY_TOPIC); still down — a reminder
 # every hour; back — «снова работает» and how long it was down. state*.txt keeps what is known between the runs,
@@ -15,7 +18,7 @@ stamp() { date -u -d "@$1" +"%Y-%m-%d %H:%M UTC"; }
 mins() { echo $(( ($1 + 59) / 60 )); }
 
 # page URL, text that must be on it (a broken PHP/DB gives a 500 or an empty page)
-page() { curl -fsSL --max-time 20 -A "uptime-check" "$1" | grep -q "$2"; }
+page() { local body; body=$(curl -fsSL --max-time 20 -A "uptime-check" "$1") && grep -q "$2" <<< "$body"; }
 
 look_game() {
   curl -fsS --max-time 20 "https://undergroundfightgame.com/api/health" | grep -q '"ok":true' &&
@@ -26,6 +29,9 @@ look_theway() {
     page "https://theway4you.co.uk/pervichnaja-konsultatsija-psihologa-v-londone" "chooseConsTypeTab"
 }
 look_tcampo() { page "https://tcampo.com/" "contactForm"; }
+look_idlecoin() { page "https://idlecoin.pro/" "idlecoin.pro"; }
+look_qaprovider() { page "https://qaprovider.com/" "QAProvider"; }
+look_sabostack() { page "https://sabostack.com/" "Sabostack"; }
 
 push() {                             # title, message, priority (1–5), tag, click URL
   [ -z "${NTFY_TOPIC:-}" ] && { echo "no NTFY_TOPIC"; return; }
@@ -68,11 +74,14 @@ watch() {
   echo "$key: $( [ "$up" = 1 ] && echo up || echo down )"
 }
 
-# the three run side by side, so one slow site does not hold up the others
+# all run side by side, so one slow site does not hold up the others
 watch game "Сервер игры" undergroundfightgame.com "https://undergroundfightgame.com/api/health" \
   "Проверь VPS в панели Hostinger." state.txt OUTAGES.md &
 watch theway "Сайт The Way" theway4you.co.uk "https://theway4you.co.uk/" \
   "Проверь VPS srv452300 в панели Hostinger." state-theway.txt OUTAGES-theway.md &
 watch tcampo "Сайт TCampo" tcampo.com "https://tcampo.com/" \
   "Проверь VPS srv452300 в панели Hostinger." state-tcampo.txt OUTAGES-tcampo.md &
+watch idlecoin "Сайт idlecoin" idlecoin.pro "https://idlecoin.pro/"   "Проверь сервер 172.233.77.38." state-idlecoin.txt OUTAGES-idlecoin.md &
+watch qaprovider "Сайт QAProvider" qaprovider.com "https://qaprovider.com/"   "Проверь VPS srv460126 в панели Hostinger." state-qaprovider.txt OUTAGES-qaprovider.md &
+watch sabostack "Сайт Sabostack" sabostack.com "https://sabostack.com/"   "Проверь VPS srv1637397 в панели Hostinger." state-sabostack.txt OUTAGES-sabostack.md &
 wait

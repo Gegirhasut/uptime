@@ -6,7 +6,10 @@
   (`/api/bots/version`); файлы `state.txt`, `OUTAGES.md`;
 - сайт https://theway4you.co.uk — главная и страница консультации (слоты из базы); `state-theway.txt`,
   `OUTAGES-theway.md`;
-- сайт https://tcampo.com — главная с формой; `state-tcampo.txt`, `OUTAGES-tcampo.md`.
+- сайт https://tcampo.com — главная с формой; `state-tcampo.txt`, `OUTAGES-tcampo.md`;
+- сайт https://idlecoin.pro — главная; `state-idlecoin.txt`, `OUTAGES-idlecoin.md`;
+- сайт https://qaprovider.com — главная; `state-qaprovider.txt`, `OUTAGES-qaprovider.md`;
+- сайт https://sabostack.com — главная; `state-sabostack.txt`, `OUTAGES-sabostack.md`.
 
 The Way и TCampo живут на одном VPS (Hostinger srv452300), игра — на другом.
 
